@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8' />
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<!--
+        以下CSS地址请在安装软件了替换成本地的地址
+        CSS地址请使用:
+        http://localhost:9000/bigemap.js/v2.1.0/bigemap.css
+        软件下载地址 http://www.bigemap.com/reader/download/detail201802017.html
+    -->
+
+<link href='http://39.105.207.77:9000/bigemap.js/v2.1.0/bigemap.css' rel='stylesheet' />
+<link href="https://cdn.bootcss.com/Buttons/2.0.0/css/buttons.min.css" rel="stylesheet">
+<link href="左侧导航.css" rel="stylesheet">
+<link href="中间列表.css" rel="stylesheet">
+<!--
+        JS地址请使用：
+        http://localhost:9000/bigemap.js/v2.1.0/bigemap.js
+    -->
+
+<script src='http://39.105.207.77:9000/bigemap.js/v2.1.0/bigemap.js'></script>
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/d3/5.16.0/d3.min.js"></script>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+}
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+.tool {
+    position: absolute;
+    z-index: 10;
+    right: 10px;
+    top: 0px;
+}
+#info {
+    width: 340px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    z-index: 10;
+    margin-left: -170px;
+    color: #155724;
+    background-color: #d4edda;
+    padding: .75rem 1.25rem;
+        margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}
+input {
+    border: 1px solid #ccc;
+    padding: 7px 5px;
+    display: inline-block;
+    width: 200px;
+    border-radius: 3px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
+}
+input:focus {
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6)
+}
+#button {
+    float: right;
+}
+.my_tooltip{
+	color: red;
+	background: transparent;
+	border: none;
+	font-size: 18px;
+}
+.my_tooltip::before{
+	display: none;
+}
+</style>
+<title>切换图层</title>
+</head>
+<body>
+
+<!--   右侧图层切换-->
+<p class="tool"> <a id="satellite" class="button button-tiny button-rounded button-primary" href="javascript:void (0);">卫星</a> <a id="street" class="button button-tiny button-rounded button-primary" href="javascript:void (0);">电子</a> </p>
+<div id="info">
+
+  <!--   中间位置地图定位经纬度-->
+  <button id="button" class="button button-primary button-pill button-small">查询</button>
+  <input type="text" id="input" placeholder="点击地图获取经纬度">
+  <div id="result"> </div>
+</div>
+<div id='map'></div>
+
+<div id='return'>
+  <a href="/">确定</a>
+  <a href="/">取消</a>
+</div>
+
+<!--   左侧导航分类   -->
+<div class="operation-container BMap_noprint anchorTL" style="position: absolute; z-index: 10; text-size-adjust: none; bottom: auto; right: auto; top: 20px; left: 30px;">
+  <div class="operation-btn btn-street" title="街道划分"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/street.png">
+    <div>街道划分</div>
+  </div>
+  <div class="operation-btn btn-community on" title="社区划分"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/community.png">
+    <div>社区划分</div>
+  </div>
+  <div class="operation-btn btn-building" title="显示商务楼宇"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/build.png">
+    <div>商务楼宇</div>
+  </div>
+  <div class="operation-btn btn-schoolDistrict" title="显示学区"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/hat.png">
+    <div>学区划分</div>
+  </div>
+  <div class="operation-btn btn-businessDistrict" title="显示商圈"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/bag.png">
+    <div>便民商圈</div>
+  </div>
+  <div class="operation-btn btn-travel" title="旅游"> <img src="http://map.dlzs.gov.cn:8080/zs_gis/PGIS/zs/images/plane.png">
+    <div>文化旅游</div>
+  </div>
+</div>
+
+    <!--中间列表 显示信息-->
+    	<div id="building1_" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#building1').hide()"></a><a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#building1').hide()">1</a>
+				</div>
+				<div class="detail-wrap detail-avatar-building">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="ssjd"></p>
+						<p id="sssq"></p>
+						<p id="address"></p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul">
+				<ul>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">联系人</p>
+						<p id="fzr" class="detail-bold"></p>
+					</li>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">电话</p>
+						<p id="lxdh" class="detail-bold"></p>
+					</li>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">建筑面积</p>
+						<p id="jzmj" class="detail-bold"></p>
+					</li>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">空置面积</p>
+						<p id="kzmj" class="detail-bold"></p>
+					</li>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">泊位数</p>
+						<p id="bws" class="detail-bold"></p>
+					</li>
+					<li style="margin: 2px 21px;">
+						<p class="detail-normal">使用时间</p>
+						<p id="sysj" class="detail-bold"></p>
+					</li>
+					<div style="clear: both;"></div>
+				</ul>
+			</div>
+			<div style="padding-top: 5px;">
+				<div style="border-top: 1px solid #eaeaea;"></div>
+				<div id="photoes" style="padding-top: 5px; height: 150px; flex-shrink: 0; -webkit-box-flex: 1; -webkit-flex-grow: 1; -ms-flex-positive: 1; flex-grow: 1; display: -webkit-box; display: -webkit-flex; display: -ms-flexbox; display: flex;"></div>
+			</div>
+		</div>
+
+		<div id="business1" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-business">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#business1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-business">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="lxdh"></p>
+						<p id="jyfw"></p>
+						<p id="address"></p>
+						<p id="vr" class="link" style="display: none;"><a href="javascript: void(0);">查看街景</a></p>
+						<p id="photoes" class="link" style="display: none;">
+							<a href="javascript: void(0);">
+								<span>查看图片</span>
+								<img src="static/picture/img-link.png">
+							</a>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul">
+				<li>
+					<p class="detail-normal">营业时间</p>
+					<p id="yysj" class="detail-bold"></p>
+				</li>
+			</div>
+		</div>
+
+		<div id="travel1" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-travel">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#travel1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-travel">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="lxdh"></p>
+						<p id="address"></p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul">
+				<li>
+					<p class="detail-normal">开放时间</p>
+					<p id="kfsj" class="detail-bold"></p>
+				</li>
+				<li>
+					<p class="detail-normal">建议游玩时长</p>
+					<p id="jyyw" class="detail-bold"></p>
+				</li>
+				<li>
+					<p class="detail-normal">最佳游玩季节</p>
+					<p id="zjjj" class="detail-bold"></p>
+				</li>
+			</div>
+		</div>
+
+		<div id="school1" class="detail-content" style="display: none; height: 90%;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-school">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#school1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-school">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="manager_phone"></p>
+						<p id="address"></p>
+						<p id="schoolPhotoes" class="link" style="display: none;">
+							<a href="javascript: void(0);">
+								<span>查看学校图片</span>
+								<img src="static/picture/img-link.png">
+							</a>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul" style="overflow: auto; height: 55%;">
+				<p id="note" style="margin: 0 15px;"></p>
+			</div>
+		</div>
+
+		<div id="school-point1" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-school">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#school-point1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-school">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="address"></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="street1" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-street">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#street1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-street">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="manager_phone"></p>
+						<p id="leader" class="link" style="display: none;">
+							<a href="javascript: void(0);"><img src="static/picture/leader.png" style="width: 70px;"></a>
+						</p>
+						<p id="guide" class="link" style="padding-top: 2px;">
+							<a href="javascript: void(0);"><img src="static/picture/street_guide.png" style="width: 70px;"></a>
+						</p>
+						<p id="streetPhotoes" class="link" style="display: none;">
+							<a href="javascript: void(0);">
+								<span>查看街道图片</span>
+								<img src="static/picture/img-link.png">
+							</a>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul">
+				<p id="note" style="margin: 0 15px;"></p>
+			</div>
+		</div>
+
+		<div id="street-point1" class="detail-content" style="display: none;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-street">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#street-point1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-street">
+					<div class="detail-text">
+						<p id="name"></p>
+						<p id="address"></p>
+						<p id="guide" class="link"></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="community1" class="detail-content" style="display: none; height: 90%;">
+			<div class="detail-content-title">
+				<div class="detail-title detail-title-community">
+					<a class="detail-setwin panel-ico" href="javascript: void(0);" onclick="$('#community1').hide()"></a>
+				</div>
+				<div class="detail-wrap detail-avatar-community">
+					<div class="detail-text">
+						<p id="streetName"></p>
+						<p id="name"></p>
+						<p id="manager_phone"></p>
+					</div>
+				</div>
+			</div>
+			<div class="detail-content-down"></div>
+			<div class="detail-content-ul" style="overflow: auto; height: 70%;">
+				<p id="note" style="margin: 0 15px;"></p>
+			</div>
+		</div>
+
+<!--   右侧商户明细信息   -->
+<div id="building1" class="new-detail-container" style="">
+  <div style="padding: 0 10px;">
+    <div style="height: 30px; width: 100%; padding: 10px 0px; border-bottom: 1px solid #f1f1f1;">
+      <div class="new-detail-title" id="title">世贸大厦</div>
+      <a class="detail-setwin panel-ico" style="margin-left: 20px;" href="javascript: void(0);" onclick="$('#building1').hide()"></a> <a class="detail-setwin panel-ico panel-max" id="cwBtn" style="margin-left: 20px;" href="javascript: void(0);" onclick="changeInfobox();"></a>
+      <div class="new-detail-rent" style=""> <img src="/zs_gis/PGIS/zs/images/kzyxx.png" style="vertical-align: middle;">可租用信息 </div>
+    </div>
+  </div>
+  <div style="padding-top: 10px;padding-bottom: 10px;">
+    <div id="avatar" class="iwLeft" style="display: block;"> <img alt="" src="/zs_gis/fupload/fileDownloadExt.act?fName=外观.jpg&amp;fId=ff80808170bcf6a10170bd4be6760550&amp;fSuf=jpg&amp;bType=GIS_ZSLY_LYWG&amp;bId=7c5578309dbd4e79a10ad589f5760002?_t_=1596787498483"> </div>
+    <div class="iwRight">
+      <div class="iwRightChild">
+        <div class="new-detail-head"><span class="new-detail-label">名称:</span><span class="new-detail-field" id="name" title="世贸大厦">世贸大厦</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">地址:</span><span class="new-detail-field" id="address" title="辽宁省大连市中山区同兴街25号">辽宁省大连市中山区同兴街25号</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">使用时间:</span><span class="new-detail-field" id="sysj" title="2000.01">2000.01</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">建筑面积:</span><span class="new-detail-field" id="jzmj" title="94320">94320平</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">空置面积:</span><span class="new-detail-field" id="kzmj" title="47500">47500平</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">联系人:</span><span class="new-detail-field" id="lxr" title="林勇">林勇</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">联系电话:</span><span class="new-detail-field" id="dh" title="15841179008">15841179008</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">车位及价格:</span><span class="new-detail-field" id="cwjg" title="8000-12000元/年">8000-12000元/年</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">租金:</span><span class="new-detail-field" id="zj" title="2.2-3元/平/天">2.2-3元/平/天</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">物业服务:</span><span class="new-detail-field" id="wyfw" title="有">有</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">物业费:</span><span class="new-detail-field" id="wyf" title="0.8元/平/天">0.8元/平/天</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">层数:</span><span class="new-detail-field" id="cs" title="60层">60层</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">标准层面积:</span><span class="new-detail-field" id="bzcmj" title="1731.27平">1731.27平</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">楼层净高:</span><span class="new-detail-field" id="lcjg" title="暂无">暂无</span></div>
+        <div class="new-detail-head"> <span class="new-detail-label">大堂高度:</span> <span class="new-detail-field" style="width: 75px;" id="dtgd" title="10米">10米</span>
+          <div id="lobby" class="new-detail-img-link" style=""> <img src="/zs_gis/PGIS/zs/images/img-link.png"> </div>
+        </div>
+        <div class="new-detail-head"><span class="new-detail-label">闸道:</span><span class="new-detail-field" id="zd" title="无">无</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">食堂:</span><span class="new-detail-field" id="st" title="暂无">暂无</span></div>
+        <div class="new-detail-head"> <span class="new-detail-label">电梯:</span> <span class="new-detail-field" style="width: 75px;" id="dt" title="有">有</span>
+          <div id="elevator" class="new-detail-img-link" style=""> <img src="/zs_gis/PGIS/zs/images/img-link.png"> </div>
+        </div>
+        <div class="new-detail-head"><span class="new-detail-label">空调新风:</span><span class="new-detail-field" id="ktxf" title="有">有</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">周边配套:</span><span class="new-detail-field" id="zbpt" title="医院 早市 美食广场 友谊商城 修竹市场 KTV">医院 早市 美食广场 友谊商城 修竹市场 KTV</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">公共交通:</span><span class="new-detail-field" id="ggjt" title="地铁 公交 有轨电车">地铁 公交 有轨电车</span></div>
+        <div class="new-detail-head"><span class="new-detail-label">可提供租赁面积:</span><span class="new-detail-field" id="kzlmj" title="48217.84平">48217.84平</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">// 软件配置信息地址，软件安装完成之后使用本地地址，如：http://localhost:9000
+        BM.Config.HTTP_URL = 'http://39.105.207.77:9000';
+        // 在ID为map的元素中实例化一个地图，不要设置地图ID，ID号程序自动生成，无需手动配置，并设置地图的投影为百度地图 ，中心点，默认的级别和显示级别控件
+    var map = BM.map('map', null, {center: [ 45.7521,131.0256], zoom: 12, zoomControl: true,attributionControl:false});
+	 //var latlngs = [[45.765085,130.994420],[45.765078,130.998313],[45.763019,130.998313],[45.763049,130.994527]];
+	 //var polygon = BM.polygon(latlngs, {color:"#3388ff",border:"1px",dashed:"#fff",weight:1}).addTo(map);
+	// zoom the map to the polygon
+	//map.fitBounds(polygon.getBounds(),{maxZoom:15});
+		// var data = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[131.0107610753417,45.76845355691061],[131.00702207565482,45.7684025529816],[131.00501207572745,45.768374550987645],[131.00378607586205,45.768357549878935],[131.00243507634102,45.76833954859702],[131.002121076566,45.7683355480254],[131.0016270768913,45.76832854768111],[131.0010430768177,45.76832054718641],[131.0006890768653,45.768315546491024],[130.9984450766193,45.768284544649276],[130.9966650768132,45.768259542399434],[130.99460707721212,45.76823154030766],[130.98777307817792,45.76813753380484],[130.98755807812307,45.7681345333764],[130.9853690797476,45.77187666297088],[130.98785807933422,45.772175674551974],[130.9897900793603,45.776365821394855],[130.99167807960387,45.778969913742564],[130.9919350795138,45.77911991893142],[130.9919780798787,45.778161885150936],[130.99382407979274,45.778161886151516],[130.99386707961457,45.77904391696938],[130.99390907960625,45.77989794685954],[130.99539008215874,45.79263339199578],[130.99544408168092,45.792641392473506],[131.00710208120685,45.79532149252715],[131.0187110796391,45.79904462874772],[131.01878807959915,45.79893162445134],[131.01941407937048,45.79827160175269],[131.02093807873348,45.796292533754865],[131.023747078015,45.79232139649709],[131.02481807774868,45.7905603354839],[131.02624207648813,45.78764623507815],[131.02073307707434,45.78775123561577],[131.01507307805696,45.787790234146335],[131.0199660770586,45.78479813196178],[131.01962507650882,45.78419211060176],[131.01920307665037,45.78344208416803],[131.01848907665544,45.782172039643584],[131.0176010765486,45.78059298442183],[131.0215330756041,45.78038997909687],[131.02258507540355,45.78033597774746],[131.01790007538816,45.776096827660076],[131.01793707477765,45.773946752426944],[131.01796907509578,45.772068686768804],[131.0180290737845,45.76855356432189],[131.01426407506034,45.76850156037286],[131.0107610753417,45.76845355691061]]]},"properties":{"name":"桃北街道","stroke":"#ff0000","stroke-opacity":1,"fill-opacity":0}}]};
+		//    data =JSON.stringify(data);
+		//    BM.geoJSON(data, {
+		// 	   style: function (feature) {
+		// 		   return {color: feature.properties.stroke};
+		// 	   }
+		//    }).bindPopup(function (layer) {
+		// 	   return layer.feature.properties.name;
+		//    }).addTo(map);
+
+//------------------------------
+
+	 var data = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[131.0107610753417,45.76845355691061],[131.00702207565482,45.7684025529816],[131.00501207572745,45.768374550987645],[131.00378607586205,45.768357549878935],[131.00243507634102,45.76833954859702],[131.002121076566,45.7683355480254],[131.0016270768913,45.76832854768111],[131.0010430768177,45.76832054718641],[131.0006890768653,45.768315546491024],[130.9984450766193,45.768284544649276],[130.9966650768132,45.768259542399434],[130.99460707721212,45.76823154030766],[130.98777307817792,45.76813753380484],[130.98755807812307,45.7681345333764],[130.9853690797476,45.77187666297088],[130.98785807933422,45.772175674551974],[130.9897900793603,45.776365821394855],[130.99167807960387,45.778969913742564],[130.9919350795138,45.77911991893142],[130.9919780798787,45.778161885150936],[130.99382407979274,45.778161886151516],[130.99386707961457,45.77904391696938],[130.99390907960625,45.77989794685954],[130.99539008215874,45.79263339199578],[130.99544408168092,45.792641392473506],[131.00710208120685,45.79532149252715],[131.0187110796391,45.79904462874772],[131.01878807959915,45.79893162445134],[131.01941407937048,45.79827160175269],[131.02093807873348,45.796292533754865],[131.023747078015,45.79232139649709],[131.02481807774868,45.7905603354839],[131.02624207648813,45.78764623507815],[131.02073307707434,45.78775123561577],[131.01507307805696,45.787790234146335],[131.0199660770586,45.78479813196178],[131.01962507650882,45.78419211060176],[131.01920307665037,45.78344208416803],[131.01848907665544,45.782172039643584],[131.0176010765486,45.78059298442183],[131.0215330756041,45.78038997909687],[131.02258507540355,45.78033597774746],[131.01790007538816,45.776096827660076],[131.01793707477765,45.773946752426944],[131.01796907509578,45.772068686768804],[131.0180290737845,45.76855356432189],[131.01426407506034,45.76850156037286],[131.0107610753417,45.76845355691061]]]},"properties":{"name":"桃北街道","stroke":"#ff0000","stroke-opacity":1,"fill-opacity":0}}]};
+	 var all=["#f7acbc","#deab8a","#817936","#444693","#ef5b9c","#fedcbd","#7f7522","#2b4490","#feeeed","#f47920","#80752c","#2a5caa","#f05b72","#905a3d","#87843b","#224b8f","#f15b6c","#8f4b2e","#726930","#003a6c","#f8aba6","#87481f","#454926","#102b6a","#f69c9f","#5f3c23","#2e3a1f","#426ab3","#f58f98","#6b473c","#4d4f36","#46485f","#ca8687","#faa755","#b7ba6b","#4e72b8","#f391a9","#fab27b","#b2d235","#181d4b","#bd6758","#f58220","#5c7a29","#1a2933","#d71345","#843900","#bed742","#121a2a","#d64f44","#905d1d","#7fb80e","#0c212b","#d93a49","#8a5d19","#a3cf62","#6a6da9","#b3424a","#8c531b","#769149","#585eaa","#c76968","#826858","#6d8346","#494e8f","#bb505d","#64492b","#78a355","#afb4db","#987165","#ae6642","#abc88b","#9b95c9","#ac6767","#56452d","#74905d","#6950a1","#973c3f","#96582a","#cde6c7","#6f60aa","#b22c46","#705628","#1d953f","#867892","#a7324a","#4a3113","#77ac98","#918597","#aa363d","#412f1f","#007d65","#6f6d85","#ed1941","#845538","#84bf96","#594c6d","#f26522","#8e7437","#45b97c","#694d9f","#d2553d","#69541b","#225a1f","#6f599c","#b4534b","#d5c59f","#367459","#8552a1","#ef4136","#cd9a5b","#007947","#543044","#c63c26","#cd9a5b","#40835e","#63434f","#f3715c","#b36d41","#2b6447","#7d5886","#a7573b","#df9464","#005831","#401c44","#aa2116","#b76f40","#006c54","#472d56","#b64533","#ad8b3d","#375830","#45224a","#b54334","#dea32c","#274d3d","#411445","#853f04","#d1923f","#375830","#4b2f3d","#840228","#c88400","#27342b","#402e4c","#7a1723","#c37e00","#65c294","#c77eb5","#a03939","#c37e00","#73b9a2","#ea66a6","#8a2e3b","#e0861a","#72baa7","#f173ac","#8e453f","#ffce7b","#005344","#fffffb","#8f4b4a","#fcaf17","#122e29","#fffef9","#892f1b","#ba8448","#293047","#f6f5ec","#6b2c25","#896a45","#00ae9d","#d9d6c3","#733a31","#76624c","#508a88","#d1c7b7","#54211d","#6d5826","#70a19f","#f2eada","#78331e","#ffc20e","#50b7c1","#d3d7d4","#53261f","#fdb933","#00a6ac","#999d9c","#f15a22","#d3c6a6","#78cdd1","#a1a3a6","#b4533c","#c7a252","#008792","#9d9087","#84331f","#dec674","#94d6da","#8a8c8e","#f47a55","#b69968","#afdfe4","#74787c","#f15a22","#c1a173","#5e7c85","#7c8577","#f3704b","#dbce8f","#76becc","#72777b","#da765b","#ffd400","#90d7ec","#77787b","#c85d44","#ffd400","#009ad6","#4f5555","#ae5039","#ffe600","#145b7d","#6c4c49","#6a3427","#f0dc70","#11264f","#563624","#8f4b38","#fcf16e","#7bbfea","#3e4145","#8e3e1f","#decb00","#33a3dc","#3c3645","#f36c21","#cbc547","#228fbd","#464547","#b4532a","#6e6b41","#2468a2","#130c0e","#b7704f","#596032","#2570a1","#281f1d","#de773f","#525f42","#2585a6","#2f271d","#c99979","#5f5d46","#1b315e","#1d1626"];
+	 BM.geoJSON(data,{
+	     style:function () {
+	         // return {color: 'white',fillColor:all[Math.floor(Math.random()*all.length)],weight:1,fillOpacity:0.9};
+			 return {color: 'white',fillColor:'#ff0000',weight:1,fillOpacity:0.3};
+	     },
+	     onEachFeature:function (feature,layer) {
+	         feature.properties&&feature.properties.name&&layer.bindTooltip(feature.properties.name,{direction:'bottom',className:'my_tooltip',permanent:true});
+	       layer.on('click', (e) => {
+	             alert("桃北街道");
+	         })
+		 }
+	 }).on('mouseover',function (e) {
+	     // e.layer.setStyle({color: 'white',fillColor:all[Math.floor(Math.random()*all.length)],weight:1,fillOpacity:0.9});
+	     e.layer.setStyle({color: 'white',fillColor:'#f7acbc',weight:1,fillOpacity:0.3});
+	 }).on('mouseout',function (e) {
+	     // e.layer.setStyle({color: 'white',fillColor:all[Math.floor(Math.random()*all.length)],weight:1,fillOpacity:0.9});
+	     e.layer.setStyle({color: 'white',fillColor:'#ff0000',weight:1,fillOpacity:0.3});
+	 }).addTo(map);
+
+//-----------------------------
+
+    //创建一个谷歌卫星图层 ，具体API详情请参见 ：http://www.bigemap.com/offlinemaps/api/#tilelayer
+    var google_satellite=BM.tileLayer('bigemap.googlemapen-satellite');
+    google_satellite.addTo(map);
+    //创建百度地图图层
+     var google_street=BM.tileLayer('bigemap.googlemap-streets');
+     //创建天地图路网图层
+        var tian_satellitestreets = BM.tileLayer('bigemap.tian-satellitestreets');
+       tian_satellitestreets.addTo(map);
+    document.getElementById('satellite').addEventListener('click',function () {
+        //先移除一个图层 ，再添加一个图层
+        google_satellite.addTo(map);
+        tian_satellitestreets.addTo(map);
+       google_street.remove(map);
+    });
+
+    document.getElementById('street').addEventListener('click',function () {
+        google_satellite.remove(map);
+         tian_satellitestreets.remove(map);
+        google_street.addTo(map);
+    });
+
+	//点击地图查询坐标信息
+map.on('click',function (e) {
+	// alert(e.latlng.lng);
+	// alert(e.latlng.lat);
+    var lng=(e.latlng.lng+180)%360+360;
+    var lat=(e.latlng.lat+180)%360+360;
+
+    $('#input').val([lng%360-180,e.latlng.lat].map(v=>v.toFixed(6)).join(','));
+	window.parent.postMessage({
+	        result :'123'
+	    },'*');
+});
+
+// $('#button').on('click',function () {
+//     $.ajax({
+//         url:'http://demo.bigemap.com/app/api/location?point='+$('#input').val().trim(),
+//         timeout:3000,
+//         dataType:'json',
+//         success:function (data) {
+//             if (data.status===0){
+//                 $('#result').html(data.results.map(v=>v.name).join('-'));
+//             }else{
+//                 $('#result').html('');
+//             }
+//         },
+//         error:function(){
+//             $('#result').html('');
+//         }
+//     });
+// });
+</script>
+</body>
+</html>

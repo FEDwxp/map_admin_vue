@@ -1,0 +1,115 @@
+
+			.detail-avatar-building {
+				background-image: url(static/image/building.png);
+			}
+			.detail-avatar-business {
+				background-image: url(static/image/business.png);
+			}
+			.detail-avatar-travel {
+				background-image: url(static/image/travel.png);
+			}
+			.detail-avatar-school {
+				background-image: url(static/image/school.png);
+			}
+			.detail-avatar-street {
+				background-image: url(static/image/street.png);
+			}
+			.detail-avatar-community {
+				background-image: url(static/image/community.png);
+			}
+			.detail-content{
+				padding: 15px;
+				width: 410px;
+				position: absolute;
+				top: 15px;
+				right: 30px;
+				font-size: 12px;
+				box-shadow: 0px 0px 10px 5px rgba(0,0,0,0.1);
+				background-color: white;
+			}
+			.detail-content-title .detail-title{
+				height: 45px;
+				background-repeat: no-repeat;
+				background-position: left center;
+			}
+			.detail-content-title .detail-title-street {
+				background-image: url(static/image/information_street.png);
+			}
+			.detail-content-title .detail-title-community {
+				background-image: url(static/image/information_community.png);
+			}
+			.detail-content-title .detail-title-school {
+				background-image: url(static/image/information_school.png);
+			}
+			.detail-content-title .detail-title-business {
+				background-image: url(static/image/information_business.png);
+			}
+			.detail-content-title .detail-title-travel {
+				background-image: url(static/image/information_travel.png);
+			}
+			.detail-wrap{
+				padding: 10px;
+				padding-left: 130px;
+				background-repeat: no-repeat;
+				background-position: left center;
+				min-height: 90px;
+			}
+			.detail-wrap p{
+				color: #333333;
+				line-height: 30px;
+			}
+			.detail-wrap div{
+				color: #333333;
+				line-height: 30px;
+			}
+			.detail-text-{
+				background-image: url(static/image/rightButton.png);
+				background-repeat: no-repeat;
+				background-position: right center;
+			}
+			.detail-content-down{
+				height: 13px;
+				background-image: url(static/image/down.png);
+				background-repeat: no-repeat;
+				background-position:center;
+			}
+			.detail-content-ul{
+	
+			}
+			.detail-content-ul li{
+				width: 162px;
+				height: 64px;
+				background-image: url(static/image/area.png);
+				background-repeat: no-repeat;
+				background-position:center;
+				margin: 15px 21px;
+				float: left;
+			} 
+			.detail-content-ul li p{
+				line-height: 24px;
+				text-align: center;
+			}
+			.detail-normal{
+				margin-top: 5px;
+				color: #666666;
+			}
+			.detail-bold{
+				color: #333333;
+				font-weight: bold;
+				font-size: 13px;
+			}
+			.detail-setwin {
+				float: right;
+			    background-position: 1px -40px;
+			    cursor: pointer;
+			    position: relative;
+			    width: 16px;
+			    height: 16px;
+			}
+			.panel-max{
+				background-position: -30px -40px;
+			}
+			.panel-resume{
+				background-position: -63px -40px;
+			}
+		 
